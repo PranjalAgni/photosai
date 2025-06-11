@@ -10,6 +10,7 @@ The application accesses the user's webcam and streams the video feed to a canva
 2.  **Face Detection**: The application continuously scans the video feed for a face.
 3.  **Login Activation**: Once a face is clearly detected in the frame, the "Login" button becomes enabled.
 4.  **Image Capture**: When the user clicks the "Login" button, the current frame from the video feed is captured from the canvas.
+5.  We match the face vector with the embeddings stored in server and send back matching photos
 
 This project serves as a foundation for building more complex face recognition and authentication systems.
 
