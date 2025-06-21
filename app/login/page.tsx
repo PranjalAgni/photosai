@@ -1,11 +1,15 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMatchData } from "../../contexts/MatchDataContext";
 import * as faceapi from "face-api.js";
 
 export default function Login() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const router = useRouter();
+  const { setMatchData } = useMatchData();
 
   const [isFaceDetected, setIsFaceDetected] = useState(false);
 
@@ -38,30 +42,24 @@ export default function Login() {
           const context = canvas.getContext("2d");
 
           if (context) {
+            // Draw video to canvas
+            const displaySize = { width: canvas.width, height: canvas.height };
+            faceapi.matchDimensions(canvas, displaySize);
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
-          }
 
-          const result = await faceapi
-            .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-            .withFaceLandmarks()
-            .withFaceDescriptor();
+            // Detect face
+            const detection = await faceapi.detectSingleFace(
+              video,
+              new faceapi.TinyFaceDetectorOptions(),
+            );
 
-          // console.log(result);
-
-          const detection = await faceapi.detectSingleFace(
-            video,
-            new faceapi.TinyFaceDetectorOptions(),
-          );
-
-          if (detection) {
-            console.log("✅ Face detected!");
-            setIsFaceDetected(true);
-          } else {
-            console.log("❌ No face in frame");
-            setIsFaceDetected(false);
+            if (detection) {
+              setIsFaceDetected(true);
+            } else {
+              setIsFaceDetected(false);
+            }
           }
         }
-
         requestAnimationFrame(drawFrame);
       };
       drawFrame();
@@ -86,45 +84,107 @@ export default function Login() {
     };
   }, []);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (canvasRef.current) {
       const canvas = canvasRef.current;
       const imageDataURL = canvas.toDataURL("image/jpeg");
-      console.log("Captured image data URL:", imageDataURL);
-      // We will send this to the server later.
+
+      const base64Data = imageDataURL.split(",")[1];
+
+      try {
+        const response = await fetch("http://localhost:8000/api/find-matches", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            image: `data:image/jpeg;base64,${base64Data}`,
+          }),
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (
+            result.matches &&
+            Array.isArray(result.matches) &&
+            result.matches.length > 0
+          ) {
+            setMatchData(result);
+            router.push("/gallery");
+          } else {
+            alert("No matches found!");
+          }
+        } else {
+          console.error("API request failed:", response.statusText);
+          alert("Failed to find matches. Please try again.");
+        }
+      } catch (error) {
+        console.error("Error making API request:", error);
+      }
     }
   };
 
+  const getStatusMessage = () => {
+    if (!isFaceDetected) {
+      return "Position your face in the frame";
+    }
+    return "Face detected! Ready to capture";
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">Face Login</h1>
-      <div style={{ position: "relative", width: "320px", height: "240px" }}>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <h1 className="text-3xl font-bold mb-2">Face Login</h1>
+      <p className="text-gray-600 mb-6">
+        Show your face to the camera to enable login
+      </p>
+
+      <div
+        className="relative border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg"
+        style={{ width: "320px", height: "240px" }}
+      >
         <video
           ref={videoRef}
           width="320"
           height="240"
           autoPlay
           muted
-          style={{ position: "absolute", top: 0, left: 0, opacity: 0 }} // Hide the video element
-        ></video>
+          style={{
+            position: "absolute",
+            opacity: 0, // Hide video, show canvas instead
+          }}
+        />
         <canvas
           ref={canvasRef}
-          width="320"
-          height="240"
-          style={{ position: "absolute", top: 0, left: 0 }}
-        ></canvas>
+          width={320}
+          height={240}
+          className="absolute top-0 left-0"
+        />
       </div>
+
+      <div
+        className={`mt-4 text-lg font-semibold ${
+          isFaceDetected ? "text-green-500" : "text-red-500"
+        }`}
+      >
+        {getStatusMessage()}
+      </div>
+
       <button
         onClick={handleLogin}
         disabled={!isFaceDetected}
-        className={`mt-4 px-4 py-2 text-white rounded ${
+        className={`mt-6 px-8 py-3 text-white rounded-lg font-semibold transition-all ${
           isFaceDetected
-            ? "bg-blue-500 hover:bg-blue-600"
+            ? "bg-green-500 hover:bg-green-600 transform hover:scale-105"
             : "bg-gray-400 cursor-not-allowed"
         }`}
       >
-        Login
+        {isFaceDetected ? "✓ Login" : "Waiting for face..."}
       </button>
+
+      <div className="mt-4 text-sm text-gray-500 text-center max-w-md">
+        <p>• Make sure your entire face is visible</p>
+        <p>• Avoid shadows and ensure good lighting</p>
+      </div>
     </div>
   );
 }
