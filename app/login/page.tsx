@@ -43,8 +43,8 @@ export default function Login() {
 
           if (context) {
             // Draw video to canvas
-            const displaySize = { width: canvas.width, height: canvas.height };
-            faceapi.matchDimensions(canvas, displaySize);
+            // const displaySize = { width: canvas.width, height: canvas.height };
+            // faceapi.matchDimensions(canvas, displaySize);
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // Detect face
