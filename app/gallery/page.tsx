@@ -29,12 +29,8 @@ export default function Gallery() {
     const sorted = [...matchData.matches].sort(
       (a, b) => b.confidence - a.confidence,
     );
+
     setSortedMatches(sorted);
-    console.log("Match data from context:", matchData);
-    console.log(
-      "URLs are perfectly preserved:",
-      matchData.matches[0]?.photoUrl,
-    );
   }, [matchData, router]);
 
   const openModal = (imageUrl: string) => {
@@ -49,7 +45,7 @@ export default function Gallery() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <h1 className="text-2xl font-bold mb-4">Gallery</h1>
-        <p className="text-gray-500">Loading matches...</p>
+        <p className="text-gray-500">Loading matches... 🐇🐇🐇</p>
       </div>
     );
   }
@@ -57,7 +53,7 @@ export default function Gallery() {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-center mb-8">
-        Face Match Results
+        Face Match Results 💖
       </h1>
 
       {/* Summary */}
