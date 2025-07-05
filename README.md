@@ -4,7 +4,7 @@ This is a web application that demonstrates a unique login experience using face
 
 ## How it Works
 
-The application accesses the user's webcam work and streams the video feed to a canvas element. It uses `face-api.js` to perform real-time face detection on the video stream.
+The application accesses the user's webcam work today and streams the video feed to a canvas element. It uses `face-api.js` to perform real-time face detection on the video stream.
 
 1.  **Initialization**: When the login page loads, it requests camera access and loads the necessary face detection models.
 2.  **Face Detection**: The application continuously scans the video feed for a face.
