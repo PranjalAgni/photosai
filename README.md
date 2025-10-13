@@ -2,6 +2,7 @@
 presentation
 done
 done 2
+done 3
 This is a web application that demonstrates a unique login experience using face detection. Instead of a traditional username and password, it uses the user's camera to detect a face before allowing them to proceed.
 
 ## How it Works
